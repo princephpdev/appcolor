@@ -27,6 +27,6 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction).
 
-## Deployed on Vercel
+## Deployed on Heroku
 
-Link to App[`https://appcolor.vercel.app/`](https://appcolor.vercel.app/)
+Link to App[`https://sheltered-beach-11579.herokuapp.com/`](https://sheltered-beach-11579.herokuapp.com/)
