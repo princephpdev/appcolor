@@ -2,7 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ["burst.shopifycdn.com", "localhost:3001"],
+    domains: ["appcolor.vercel.app", "localhost:3001"],
   },
 };
 
