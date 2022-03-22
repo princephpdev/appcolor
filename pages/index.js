@@ -2,14 +2,7 @@ import Head from "next/head";
 import Footer from "../components/Footer";
 import Media from "../components/Media";
 import { useCallback, useEffect, useState } from "react";
-import {
-  Page,
-  Button,
-  ColorPicker,
-  Form,
-  FormLayout,
-  TextField,
-} from "@shopify/polaris";
+import { Page, ColorPicker, FormLayout, TextField } from "@shopify/polaris";
 
 export default function Home() {
   const [value, setValue] = useState("Your Quote");
@@ -23,32 +16,30 @@ export default function Home() {
   const [mediasrc, setMediaSrc] = useState("/public/test.png");
 
   useEffect(() => {
-    console.log(mediasrc);
-  }, [mediasrc]);
-
-  const handleSubmit = useCallback(
-    async (_event) => {
-      _event.preventDefault();
-      if (!value || value.length > 100) return false;
+    if (!value || value.length > 100) return false;
+    let isMounted = true;
+    const getQuoteImage = async () => {
       try {
         const response = await fetch("/api/submit", {
           method: "POST",
           body: JSON.stringify({ quote: value, color: color }),
         });
         const data = await response.json();
-        console.log(data);
         if (data.status === "ok") {
-          setMediaSrc(data.imagesrc);
+          isMounted && setMediaSrc(data.imagesrc);
         } else {
           alert("Something went wrong");
         }
-      } catch (err) {
-        console.log(err.message);
+      } catch (error) {
+        console.log(error.message);
         alert("Something went wrong");
       }
-    },
-    [value, color]
-  );
+    };
+    getQuoteImage();
+    return () => {
+      isMounted = false;
+    };
+  }, [color, value]);
 
   const handleValueChange = useCallback((value) => {
     setValue(value);
@@ -65,24 +56,17 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Page title="Color Picker">
-        <Form onSubmit={handleSubmit}>
-          <FormLayout>
-            <ColorPicker
-              onChange={handleColorChange}
-              color={color}
-              allowAlpha
-            />
-            <TextField
-              value={value}
-              onChange={handleValueChange}
-              label="Your Quote"
-              type="text"
-              autoComplete="off"
-              placeholder="Your quote"
-            />
-          </FormLayout>
-          <Button submit>Submit</Button>
-        </Form>
+        <FormLayout>
+          <ColorPicker onChange={handleColorChange} color={color} allowAlpha />
+          <TextField
+            value={value}
+            onChange={handleValueChange}
+            label="Your Quote"
+            type="text"
+            autoComplete="off"
+            placeholder="Your quote"
+          />
+        </FormLayout>
         <br />
         <Media src={mediasrc} />
         <Footer />

@@ -15,9 +15,9 @@ const createQuoteImage = async function (quote, color) {
   const context = canvas.getContext("2d");
   context.fillStyle = "#000";
   context.fillRect(0, 0, width, height);
-  const hslaColor = `hsla(${color.hue.toFixed(2)},${
-    color.brightness.toFixed(2) * 100
-  }%,${color.saturation.toFixed(2) * 100}%,${color.alpha.toFixed(2)})`;
+  const hslaColor = `hsla(${color.hue},${color.brightness * 100}%,${
+    color.saturation * 100
+  }%,${color.alpha})`;
 
   console.log(hslaColor);
 
