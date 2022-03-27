@@ -1,52 +1,93 @@
 import Head from "next/head";
 import Footer from "../components/Footer";
 import Media from "../components/Media";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Page, ColorPicker, FormLayout, TextField } from "@shopify/polaris";
+import tinyColor from "tinycolor2";
+import { debounce, throttle } from "lodash";
 
 export default function Home() {
-  const [value, setValue] = useState("Your Quote");
-  const [color, setColor] = useState({
-    hue: 300,
-    brightness: 1,
-    saturation: 0.7,
-    alpha: 0.7,
-  });
-
+  const initialValues = {
+    quote: "Your Quote",
+    color: {
+      hue: 300,
+      brightness: 1,
+      saturation: 0.7,
+      alpha: 0.7,
+    },
+  };
+  const [values, setValues] = useState(initialValues);
   const [mediasrc, setMediaSrc] = useState("/public/test.png");
 
+  const canvasRef = useRef(null);
+
+  const handleChange = useCallback(
+    (value) => {
+      let name = "";
+      if (typeof value === "object") {
+        name = "color";
+      } else {
+        name = "quote";
+      }
+      setValues({
+        ...values,
+        [name]: value,
+      });
+    },
+    [values]
+  );
+
+  const debouncedChangeHandler = useMemo(
+    () => debounce(handleChange, 50),
+    [handleChange]
+  );
+
+  const throttledEventHandler = useMemo(
+    () => throttle(handleChange, 300),
+    [handleChange]
+  );
+
   useEffect(() => {
-    if (!value || value.length > 100) return false;
+    const { quote, color } = values;
+    if (!quote || quote.length > 100) return false;
     let isMounted = true;
     const getQuoteImage = async () => {
-      try {
-        const response = await fetch("/api/submit", {
-          method: "POST",
-          body: JSON.stringify({ quote: value, color: color }),
-        });
-        const data = await response.json();
-        if (data.status === "ok") {
-          isMounted && setMediaSrc(data.imagesrc);
-        } else {
-          alert("Something went wrong");
-        }
-      } catch (error) {
-        console.log(error.message);
-        alert("Something went wrong");
+      const canvas = canvasRef.current;
+      const context = canvas.getContext("2d");
+      context.fillStyle = "#000";
+      context.fillRect(0, 0, 1000, 500);
+
+      const hsvaColor = `hsva(${color.hue},${color.brightness * 100}%,${
+        color.saturation * 100
+      }%,${color.alpha})`;
+
+      const hexColor = tinyColor(hsvaColor).toHexString();
+
+      let text = quote;
+      let textSize = "";
+      const textLength = text.length;
+
+      if (textLength <= 25) {
+        textSize = '4rem "Lato"';
+      } else if (textLength > 25 && textLength <= 50) {
+        textSize = '2.5rem "Lato"';
+      } else if (textLength > 50 && textLength <= 75) {
+        textSize = '1.5rem "Lato"';
+      } else {
+        textSize = '1rem "Lato"';
       }
+      context.font = textSize;
+      context.textAlign = "center";
+      context.fillStyle = hexColor; //This needs to change
+      context.fillText(text, 500, 250, 1000);
+      isMounted && setMediaSrc(canvas.toDataURL());
     };
     getQuoteImage();
     return () => {
       isMounted = false;
+      debouncedChangeHandler.cancel();
     };
-  }, [color, value]);
-
-  const handleValueChange = useCallback((value) => {
-    setValue(value);
-  }, []);
-  const handleColorChange = useCallback((color) => {
-    setColor(color);
-  }, []);
+  }, [debouncedChangeHandler, values]);
 
   return (
     <>
@@ -57,10 +98,14 @@ export default function Home() {
       </Head>
       <Page title="Color Picker">
         <FormLayout>
-          <ColorPicker onChange={handleColorChange} color={color} allowAlpha />
+          <ColorPicker
+            color={values.color}
+            onChange={debouncedChangeHandler}
+            allowAlpha
+          />
           <TextField
-            value={value}
-            onChange={handleValueChange}
+            value={values.quote}
+            onChange={debouncedChangeHandler}
             label="Your Quote"
             type="text"
             autoComplete="off"
@@ -68,6 +113,9 @@ export default function Home() {
           />
         </FormLayout>
         <br />
+        <div style={{ display: "none" }}>
+          <canvas ref={canvasRef} width={1000} height={500} />
+        </div>
         <Media src={mediasrc} />
         <Footer />
       </Page>
