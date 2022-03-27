@@ -61,7 +61,7 @@ export default function Home() {
         color.saturation * 100
       }%,${color.alpha})`;
 
-      const hexColor = tinyColor(hsvaColor).toHexString();
+      const finalColor = tinyColor(hsvaColor).toRgbString();
 
       let text = quote;
       let textSize = "";
@@ -78,7 +78,7 @@ export default function Home() {
       }
       context.font = textSize;
       context.textAlign = "center";
-      context.fillStyle = hexColor; //This needs to change
+      context.fillStyle = finalColor;
       context.fillText(text, 500, 250, 1000);
       isMounted && setMediaSrc(canvas.toDataURL());
     };
